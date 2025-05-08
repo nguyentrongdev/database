@@ -1,0 +1,58 @@
+version: "3"
+services:
+  mysql:
+    image: mysql:8.4.2
+    container_name: mysql-8.4.2
+    restart: always
+    environment:
+      MYSQL_DATABASE: "local"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "aIQ90ru1Fw11l12z"
+      MYSQL_ROOT_PASSWORD: "541c9g7151Q8W1v0"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb-8.0
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: "test"
+      MONGO_INITDB_ROOT_USERNAME: "root"
+      MONGO_INITDB_ROOT_PASSWORD: "rxeTIueZvXS8JOT"
+      MONGODB_USER: "user"
+      MONGODB_PASSWORD: "123456"
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodb/data:/data/db
+  
+  dynamodb:
+    image: amazon/dynamodb-local:2.4.0
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -v http://dynamodb:8000" ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    volumes:
+     - "./dynamodb/data:/home/dynamodblocal/data"
+    ports:
+      - "8000:8000"
+    restart: always
+
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:4.6.1
+    ports:
+      - "8001:8001"
+    environment:
+      DYNAMO_ENDPOINT: "http://dynamodb:8000"
+      AWS_REGION: "eu-west-2"
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: def
+    depends_on:
+      dynamodb:
+        condition: service_healthy
