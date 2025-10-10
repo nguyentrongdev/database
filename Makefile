@@ -45,7 +45,6 @@ check-dirs: ## Kiểm tra và tạo các thư mục data
 			echo "$(YELLOW)⚠️  Thư mục $$dir chưa tồn tại$(NC)"; \
 			echo "$(GREEN)✓ Đang tạo thư mục $$dir...$(NC)"; \
 			mkdir -p "$$dir"; \
-			touch "$$dir/index.txt"; \
 			echo "$(GREEN)✓ Đã tạo thư mục $$dir$(NC)"; \
 		else \
 			echo "$(GREEN)✓ Thư mục $$dir đã tồn tại$(NC)"; \
