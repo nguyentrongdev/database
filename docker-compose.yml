@@ -1,6 +1,6 @@
-version: "3"
 services:
   mysql:
+    profiles: ["mysql"]
     image: mysql:8.4.2
     container_name: mysql-8.4.2
     restart: always
@@ -15,6 +15,7 @@ services:
       - ./mysql/data:/var/lib/mysql
 
   mongodb:
+    profiles: ["mongodb"]
     image: mongo:8.0
     container_name: mongodb-8.0
     restart: always
@@ -28,31 +29,70 @@ services:
       - "27017:27017"
     volumes:
       - ./mongodb/data:/data/db
-  
-  dynamodb:
-    image: amazon/dynamodb-local:2.4.0
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -v http://dynamodb:8000" ]
-      interval: 3s
-      timeout: 3s
-      retries: 5
-      start_period: 3s
-    volumes:
-     - "./dynamodb/data:/home/dynamodblocal/data"
-    ports:
-      - "8000:8000"
-    restart: always
 
-  dynamodb-admin:
-    image: aaronshaf/dynamodb-admin:4.6.1
-    ports:
-      - "8001:8001"
+  rabbitmq:
+    profiles: ["rabbitmq"]
+    image: rabbitmq:3.8-management
+    container_name: rabbitmq-3.8
+    restart: always
     environment:
-      DYNAMO_ENDPOINT: "http://dynamodb:8000"
-      AWS_REGION: "eu-west-2"
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: def
-    depends_on:
-      dynamodb:
-        condition: service_healthy
+      RABBITMQ_DEFAULT_USER: "admin"
+      RABBITMQ_DEFAULT_PASS: "admin123"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+
+  postgres:
+    profiles: ["postgres"]
+    image: postgres:17-alpine
+    container_name: postgres-17-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: "local"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "postgres123"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+
+  redis:
+    profiles: ["redis"]
+    image: redis:7-alpine
+    container_name: redis-7-alpine
+    restart: always
+    command: redis-server --requirepass redis123
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+  
+  # dynamodb:
+  #   image: amazon/dynamodb-local:2.4.0
+  #   command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "curl -v http://dynamodb:8000" ]
+  #     interval: 3s
+  #     timeout: 3s
+  #     retries: 5
+  #     start_period: 3s
+  #   volumes:
+  #    - "./dynamodb/data:/home/dynamodblocal/data"
+  #   ports:
+  #     - "8000:8000"
+  #   restart: always
+
+  # dynamodb-admin:
+  #   image: aaronshaf/dynamodb-admin:4.6.1
+  #   ports:
+  #     - "8001:8001"
+  #   environment:
+  #     DYNAMO_ENDPOINT: "http://dynamodb:8000"
+  #     AWS_REGION: "eu-west-2"
+  #     AWS_ACCESS_KEY_ID: test
+  #     AWS_SECRET_ACCESS_KEY: def
+  #   depends_on:
+  #     dynamodb:
+  #       condition: service_healthy
